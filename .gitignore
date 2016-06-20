@@ -1,1 +1,8 @@
+bin/
+obj/
+.vs/
+
 *.exe
+*.sln
+*.csproj
+*.csproj.user
