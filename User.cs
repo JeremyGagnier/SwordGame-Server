@@ -8,6 +8,7 @@ public class User
 
     public Game game = null;
     public int playerNum = 0;
+    public string name = "";
 
     public User(Socket socket)
     {
@@ -24,5 +25,20 @@ public class User
     public void SendGameMessage(string message)
     {
         controller.SendData(message);
+    }
+
+    public void SetUpGame(
+        Game game,
+        int numPlayers,
+        int playerNum,
+        List<string> playerNames)
+    {
+        this.game = game;
+        this.playerNum = playerNum;
+        controller.SendData(
+            string.Format("ng {0} {1} ",
+                numPlayers.ToString(),
+                playerNum.ToString()) +
+            string.Join(" ", playerNames));
     }
 }

@@ -16,17 +16,19 @@ dnstest - check the current IP of " + DNS + @"
 
     static List<User> users = new List<User>();
     static List<Game> games = new List<Game>();
-    static List<User> gameQueue = new List<User>();
+    static GameQueue gameQueue = new GameQueue();
     
     /// <summary>
-    /// Routes is used for matching messages to functions based on the first word.
+    /// Routes is used for matching messages to functions.
     /// </summary>
     static Dictionary<string, Action<User, string[]>> routes = 
         new Dictionary<string, Action<User, string[]>>()
     {
         { "queue", QueueUser },
+        { "dequeue", DequeueUser },
         { "disconnect", Disconnect },
-        { "g", GameMessage }
+        { "g", GameMessage },
+        { "name", SetName }
     };
 
     static void Main(string[] args)
@@ -89,8 +91,8 @@ dnstest - check the current IP of " + DNS + @"
     public static void LogOut(Exception e, User user)
     {
         users.Remove(user);
-        user.LogOut();
         gameQueue.Remove(user);
+        user.LogOut();
     }
 
     public static void ProcessMessage(string message, User user)
@@ -99,25 +101,45 @@ dnstest - check the current IP of " + DNS + @"
         routes[args[0]](user, args);
     }
 
-    static void QueueUser(User user, string[] args)
+    private static void QueueUser(User user, string[] args)
     {
-        if (gameQueue.Count < 4) {
-            gameQueue.Add(user);
-        } else {
-            List<User> players = gameQueue;
-            gameQueue = new List<User>();
-            players.Add(user);
-            games.Add(new Game(players));
+        List<int> validPlayerCounts = new List<int>();
+        foreach (string s in args[1].Split(','))
+        {
+            validPlayerCounts.Add(Convert.ToInt32(s));
+        }
+        gameQueue.Add(user, validPlayerCounts);
+        Game game = gameQueue.TryFormGame();
+        if (game != null)
+        {
+            games.Add(game);
         }
     }
 
-    static void Disconnect(User user, string[] args)
+    private static void DequeueUser(User user, string[] args)
+    {
+        gameQueue.Remove(user);
+    }
+
+    private static void Disconnect(User user, string[] args)
     {
         LogOut(null, user);
     }
 
-    static void GameMessage(User user, string[] args)
+    private static void GameMessage(User user, string[] args)
     {
-        user.game.GameMessage(user, args);
+        if (user.game != null)
+        {
+            user.game.GameMessage(user, args);
+        }
+        else
+        {
+            Console.WriteLine("Error sending game message, game isn't set!");
+        }
+    }
+
+    private static void SetName(User user, string[] args)
+    {
+        user.name = args[1];
     }
 }
