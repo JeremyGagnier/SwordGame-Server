@@ -7,6 +7,7 @@ public class Game
 
     public Game(List<User> players)
     {
+        // TODO: Generate and send a random seed for the game!!
         this.players = players;
         List<string> playerNames = new List<string>();
         foreach (User player in players)

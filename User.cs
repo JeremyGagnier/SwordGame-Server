@@ -40,5 +40,10 @@ public class User
                 numPlayers.ToString(),
                 playerNum.ToString()) +
             string.Join(" ", playerNames));
+
+        if (string.IsNullOrEmpty(name))
+        {
+            name = string.Format("Player {0}", playerNum);
+        }
     }
 }
