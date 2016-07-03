@@ -77,9 +77,10 @@ dnstest - check the current IP of " + DNS + @"
                     break;
             }
         }
-        foreach (User user in users)
+
+        for(int i = 0; i < users.Count; ++i)
         {
-            user.LogOut();
+            users[i].LogOut();
         }
     }
 

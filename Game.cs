@@ -7,16 +7,23 @@ public class Game
 
     public Game(List<User> players)
     {
-        // TODO: Generate and send a random seed for the game!!
         this.players = players;
+        int seed = (new System.Random()).Next();
         List<string> playerNames = new List<string>();
-        foreach (User player in players)
+        for (int i = 0; i < players.Count; ++i)
         {
-            playerNames.Add(player.name);
+            if (string.IsNullOrEmpty(players[i].name))
+            {
+                playerNames.Add(string.Format("Player{0}", i));
+            }
+            else
+            {
+                playerNames.Add(players[i].name);
+            }
         }
         for (int i = 0; i < players.Count; ++i)
         {
-            players[i].SetUpGame(this, players.Count, i + 1, playerNames);
+            players[i].SetUpGame(this, seed, players.Count, i + 1, playerNames);
         }
     }
 

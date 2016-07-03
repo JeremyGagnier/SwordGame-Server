@@ -29,6 +29,7 @@ public class User
 
     public void SetUpGame(
         Game game,
+        int seed,
         int numPlayers,
         int playerNum,
         List<string> playerNames)
@@ -36,14 +37,11 @@ public class User
         this.game = game;
         this.playerNum = playerNum;
         controller.SendData(
-            string.Format("ng {0} {1} ",
+            string.Format(
+                "ng {0} {1} {2} {3}",
+                seed.ToString(),
                 numPlayers.ToString(),
-                playerNum.ToString()) +
-            string.Join(" ", playerNames));
-
-        if (string.IsNullOrEmpty(name))
-        {
-            name = string.Format("Player {0}", playerNum);
-        }
+                playerNum.ToString(),
+                string.Join(" ", playerNames)));
     }
 }
