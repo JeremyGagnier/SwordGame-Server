@@ -10,6 +10,8 @@ public class User
     public int playerNum = 0;
     public string name = "";
 
+    private bool isInQueue = false;
+
     public User(Socket socket)
     {
         controller = new SocketHandler.Controller(socket);
@@ -25,6 +27,22 @@ public class User
     public void SendGameMessage(string message)
     {
         controller.SendData(message);
+    }
+
+    public void Queue(GameQueue queue, List<int> modes)
+    {
+        if (isInQueue) return;
+
+        isInQueue = true;
+        queue.Add(this, modes);
+    }
+
+    public void Dequeue(GameQueue queue)
+    {
+        if (!isInQueue) return;
+
+        isInQueue = false;
+        queue.Remove(this);
     }
 
     public void SetUpGame(

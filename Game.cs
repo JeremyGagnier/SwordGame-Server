@@ -33,7 +33,7 @@ public class Game
         {
             if (player != user)
             {
-                args[0] = player.playerNum.ToString();
+                args[0] = user.playerNum.ToString();
                 player.SendGameMessage("g " + string.Join(" ", args));
             }
         }

@@ -109,7 +109,7 @@ dnstest - check the current IP of " + DNS + @"
         {
             validPlayerCounts.Add(Convert.ToInt32(s));
         }
-        gameQueue.Add(user, validPlayerCounts);
+        user.Queue(gameQueue, validPlayerCounts);
         Game game = gameQueue.TryFormGame();
         if (game != null)
         {
@@ -119,7 +119,7 @@ dnstest - check the current IP of " + DNS + @"
 
     private static void DequeueUser(User user, string[] args)
     {
-        gameQueue.Remove(user);
+        user.Dequeue(gameQueue);
     }
 
     private static void Disconnect(User user, string[] args)
