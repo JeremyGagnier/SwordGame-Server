@@ -1,0 +1,18 @@
+Game messages are sent to the server using UDP.
+
+They are encoded byte arrays and are encoded in the following way:
+
+Bytes ---> (big endian)
+-------------------------------------------------------------------------------------------------------------------
+0: |Frame Number 16-23     | 1: |Frame Number 8-15      | 2: |Frame Number 0-7       | 3: |--|--|b3|b2|b1|b0|p1|p0|
+-------------------------------------------------------------------------------------------------------------------
+4: |FInt for x axis 24-31  | 5: |FInt for x axis 16-23  | 6: |FInt for x axis 8-15   | 7: |FInt for x axis 0-7    |
+-------------------------------------------------------------------------------------------------------------------
+8: |FInt for x axis 24-31  | 9: |FInt for x axis 16-23  | 10:|FInt for x axis 8-15   | 11:|FInt for x axis 0-7    |
+-------------------------------------------------------------------------------------------------------------------
+p = Player number of sender
+b = Button (boolean)
+
+examples:
+-byte[3] mod 4 to get player number
+-byte[3] & 4 to get button 0 (& is logical and, button 0 is a boolean)

@@ -4,10 +4,16 @@ using System.Collections.Generic;
 public class Game
 {
     private List<User> players = null;
+    private List<List<byte[]>> playerFrames = new List<List<byte[]>>();
 
     public Game(List<User> players)
     {
         this.players = players;
+        for (int i = 0; i < players.Count; ++i)
+        {
+            playerFrames.Add(new List<byte[]>());
+        }
+
         int seed = (new System.Random()).Next();
         List<string> playerNames = new List<string>();
         for (int i = 0; i < players.Count; ++i)
@@ -27,15 +33,51 @@ public class Game
         }
     }
 
-    public void GameMessage(User user, string[] args)
+    public void GameMessage(User user, byte[] message)
     {
-        foreach (User player in players)
+        // Read the Game Message Specification for more information
+        // about byte accessing
+        int frame = message[0] * 65536 + message[1] * 256 + message[2];
+        int pnum = (int)message[3] % 4;
+        if (playerFrames[pnum] == null) return; // This user has already left
+        if (frame >= playerFrames[pnum].Count)
         {
-            if (player != user)
+            // Fill with null until we reach our frame count
+            for (int i = playerFrames[pnum].Count; i < frame; ++i)
             {
-                args[0] = user.playerNum.ToString();
-                player.SendGameMessage("g " + string.Join(" ", args));
+                playerFrames[pnum].Add(null);
+            }
+            playerFrames[pnum].Add(message);
+        }
+        else
+        {
+            if (playerFrames[pnum][frame] == null)
+            {
+                playerFrames[pnum][frame] = message;
+            }
+            else
+            {
+                // Already received this message so just move on
+                return;
             }
         }
+        foreach (User player in players)
+        {
+            if (player != null && player != user)
+            {
+                player.SendGameMessage(message);
+            }
+        }
+    }
+
+    public void LeaveGame(User user)
+    {
+        players[user.playerNum] = null;
+        playerFrames[user.playerNum] = null;
+        if (players.Count == 0)
+        {
+            Server.EndGame(this);
+        }
+        user.game = null;
     }
 }

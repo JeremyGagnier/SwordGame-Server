@@ -4,6 +4,10 @@ using System.Collections.Generic;
 
 public class User
 {
+    // Send several UDP packets and hope that one gets through!
+    public const int UDP_SEND_COUNT = 5;
+
+    private SocketHandler.UDPController udp = null;
     private SocketHandler.Controller controller = null;
 
     public Game game = null;
@@ -14,6 +18,9 @@ public class User
 
     public User(Socket socket)
     {
+        udp = new SocketHandler.UDPController(socket);
+        udp.onReceiveData += HandleGameMessage;
+
         controller = new SocketHandler.Controller(socket);
         controller.onCloseConnection += (e) => Server.LogOut(e, this);
         controller.onReceiveData += (s) => Server.ProcessMessage(s, this);
@@ -21,12 +28,21 @@ public class User
 
     public void LogOut()
     {
+        udp.Stop();
         controller.Stop();
     }
 
-    public void SendGameMessage(string message)
+    public void HandleGameMessage(byte[] message)
     {
-        controller.SendData(message);
+        game.GameMessage(this, message);
+    }
+
+    public void SendGameMessage(byte[] message)
+    {
+        for (int i = 0; i < UDP_SEND_COUNT; ++i)
+        {
+            udp.SendData(message);
+        }
     }
 
     public void Queue(GameQueue queue, List<int> modes)

@@ -27,7 +27,6 @@ dnstest - check the current IP of " + DNS + @"
         { "queue", QueueUser },
         { "dequeue", DequeueUser },
         { "disconnect", Disconnect },
-        { "g", GameMessage },
         { "name", SetName }
     };
 
@@ -93,6 +92,10 @@ dnstest - check the current IP of " + DNS + @"
     {
         users.Remove(user);
         gameQueue.Remove(user);
+        if (user.game != null)
+        {
+            user.game.LeaveGame(user);
+        }
         user.LogOut();
     }
 
@@ -127,20 +130,13 @@ dnstest - check the current IP of " + DNS + @"
         LogOut(null, user);
     }
 
-    private static void GameMessage(User user, string[] args)
-    {
-        if (user.game != null)
-        {
-            user.game.GameMessage(user, args);
-        }
-        else
-        {
-            Console.WriteLine("Error sending game message, game isn't set!");
-        }
-    }
-
     private static void SetName(User user, string[] args)
     {
         user.name = args[1];
+    }
+
+    public static void EndGame(Game game)
+    {
+        games.Remove(game);
     }
 }
