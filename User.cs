@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
 
@@ -7,8 +8,9 @@ public class User
     // Send several UDP packets and hope that one gets through!
     public const int UDP_SEND_COUNT = 5;
 
-    private SocketHandler.UDPController udp = null;
+    private SocketHandler.UDPServer udpServer = null;
     private SocketHandler.Controller controller = null;
+    private IPEndPoint endpoint;
 
     public Game game = null;
     public int playerNum = 0;
@@ -16,11 +18,10 @@ public class User
 
     private bool isInQueue = false;
 
-    public User(Socket socket)
+    public User(Socket socket, SocketHandler.UDPServer udpServer)
     {
-        udp = new SocketHandler.UDPController(socket);
-        udp.onReceiveData += HandleGameMessage;
-
+        this.udpServer = udpServer;
+        endpoint = (IPEndPoint)socket.RemoteEndPoint;
         controller = new SocketHandler.Controller(socket);
         controller.onCloseConnection += (e) => Server.LogOut(e, this);
         controller.onReceiveData += (s) => Server.ProcessMessage(s, this);
@@ -28,7 +29,6 @@ public class User
 
     public void LogOut()
     {
-        udp.Stop();
         controller.Stop();
     }
 
@@ -41,7 +41,7 @@ public class User
     {
         for (int i = 0; i < UDP_SEND_COUNT; ++i)
         {
-            udp.SendData(message);
+            udpServer.SendData(endpoint, message);
         }
     }
 

@@ -17,7 +17,8 @@ dnstest - check the current IP of " + DNS + @"
     static List<User> users = new List<User>();
     static List<Game> games = new List<Game>();
     static GameQueue gameQueue = new GameQueue();
-    
+    static SocketHandler.UDPServer udpServer;
+
     /// <summary>
     /// Routes is used for matching messages to functions.
     /// </summary>
@@ -32,7 +33,8 @@ dnstest - check the current IP of " + DNS + @"
 
     static void Main(string[] args)
     {
-        SocketHandler.Server servSocket = new SocketHandler.Server(5287);
+        SocketHandler.Server servSocket = new SocketHandler.Server(PORT);
+        udpServer = new SocketHandler.UDPServer(PORT);
         servSocket.onNewConnection += StartNewSession;
 
         bool running = true;
@@ -59,7 +61,6 @@ dnstest - check the current IP of " + DNS + @"
                 case "q":
                 case "quit":
                     running = false;
-                    servSocket.Stop();
                     break;
                 case "h":
                 case "help":
@@ -81,11 +82,15 @@ dnstest - check the current IP of " + DNS + @"
         {
             users[i].LogOut();
         }
+        servSocket.Stop();
+        udpServer.Stop();
     }
 
     private static void StartNewSession(Socket socket)
     {
-        users.Add(new User(socket));
+        User newUser = new User(socket, udpServer);
+        users.Add(newUser);
+        udpServer.ListenToEndPoint((IPEndPoint)socket.RemoteEndPoint, newUser.HandleGameMessage);
     }
 
     public static void LogOut(Exception e, User user)
