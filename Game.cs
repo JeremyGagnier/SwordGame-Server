@@ -29,7 +29,7 @@ public class Game
         }
         for (int i = 0; i < players.Count; ++i)
         {
-            players[i].SetUpGame(this, seed, players.Count, i + 1, playerNames);
+            players[i].SetUpGame(this, seed, players.Count, i, playerNames);
         }
     }
 
