@@ -70,6 +70,18 @@ public class Game
         }
     }
 
+    public void GetFrame(User user, int pnum, int frame)
+    {
+        if (playerFrames[pnum].Count > frame && playerFrames[pnum][frame] != null)
+        {
+            user.SendGameMessage(playerFrames[pnum][frame]);
+        }
+        else
+        {
+            players[pnum].AskForFrame(frame);
+        }
+    }
+
     public void LeaveGame(User user)
     {
         players[user.playerNum] = null;

@@ -78,4 +78,9 @@ public class User
                 playerNum.ToString(),
                 string.Join(" ", playerNames)));
     }
+
+    public void AskForFrame(int frame)
+    {
+        controller.SendData("f " + frame.ToString());
+    }
 }

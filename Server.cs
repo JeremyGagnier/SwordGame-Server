@@ -28,7 +28,8 @@ dnstest - check the current IP of " + DNS + @"
         { "queue", QueueUser },
         { "dequeue", DequeueUser },
         { "disconnect", Disconnect },
-        { "name", SetName }
+        { "name", SetName },
+        { "g", GetFrame }
     };
 
     static void Main(string[] args)
@@ -54,7 +55,6 @@ dnstest - check the current IP of " + DNS + @"
         string message;
         while (running)
         {
-            Console.Write(">>> ");
             message = Console.ReadLine();
             switch(message)
             {
@@ -138,6 +138,11 @@ dnstest - check the current IP of " + DNS + @"
     private static void SetName(User user, string[] args)
     {
         user.name = args[1];
+    }
+
+    private static void GetFrame(User user, string[] args)
+    {
+        user.game.GetFrame(user, Convert.ToInt32(args[1]), Convert.ToInt32(args[2]));
     }
 
     public static void EndGame(Game game)
