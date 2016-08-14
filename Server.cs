@@ -17,7 +17,8 @@ dnstest - check the current IP of " + DNS + @"
     static List<User> users = new List<User>();
     static List<Game> games = new List<Game>();
     static GameQueue gameQueue = new GameQueue();
-    
+    static SocketHandler.UDPServer udpServer;
+
     /// <summary>
     /// Routes is used for matching messages to functions.
     /// </summary>
@@ -27,13 +28,14 @@ dnstest - check the current IP of " + DNS + @"
         { "queue", QueueUser },
         { "dequeue", DequeueUser },
         { "disconnect", Disconnect },
-        { "g", GameMessage },
-        { "name", SetName }
+        { "name", SetName },
+        { "g", GetFrame }
     };
 
     static void Main(string[] args)
     {
-        SocketHandler.Server servSocket = new SocketHandler.Server(5287);
+        SocketHandler.Server servSocket = new SocketHandler.Server(PORT);
+        udpServer = new SocketHandler.UDPServer(PORT);
         servSocket.onNewConnection += StartNewSession;
 
         bool running = true;
@@ -53,14 +55,12 @@ dnstest - check the current IP of " + DNS + @"
         string message;
         while (running)
         {
-            Console.Write(">>> ");
             message = Console.ReadLine();
             switch(message)
             {
                 case "q":
                 case "quit":
                     running = false;
-                    servSocket.Stop();
                     break;
                 case "h":
                 case "help":
@@ -82,17 +82,25 @@ dnstest - check the current IP of " + DNS + @"
         {
             users[i].LogOut();
         }
+        servSocket.Stop();
+        udpServer.Stop();
     }
 
     private static void StartNewSession(Socket socket)
     {
-        users.Add(new User(socket));
+        User newUser = new User(socket, udpServer);
+        users.Add(newUser);
+        udpServer.ListenToEndPoint((IPEndPoint)socket.RemoteEndPoint, newUser.HandleGameMessage);
     }
 
     public static void LogOut(Exception e, User user)
     {
         users.Remove(user);
         gameQueue.Remove(user);
+        if (user.game != null)
+        {
+            user.game.LeaveGame(user);
+        }
         user.LogOut();
     }
 
@@ -127,20 +135,18 @@ dnstest - check the current IP of " + DNS + @"
         LogOut(null, user);
     }
 
-    private static void GameMessage(User user, string[] args)
-    {
-        if (user.game != null)
-        {
-            user.game.GameMessage(user, args);
-        }
-        else
-        {
-            Console.WriteLine("Error sending game message, game isn't set!");
-        }
-    }
-
     private static void SetName(User user, string[] args)
     {
         user.name = args[1];
+    }
+
+    private static void GetFrame(User user, string[] args)
+    {
+        user.game.GetFrame(user, Convert.ToInt32(args[1]), Convert.ToInt32(args[2]));
+    }
+
+    public static void EndGame(Game game)
+    {
+        games.Remove(game);
     }
 }

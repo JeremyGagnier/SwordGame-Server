@@ -1,10 +1,16 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
 
 public class User
 {
+    // Send several UDP packets and hope that one gets through!
+    public const int UDP_SEND_COUNT = 5;
+
+    private SocketHandler.UDPServer udpServer = null;
     private SocketHandler.Controller controller = null;
+    private IPEndPoint endpoint;
 
     public Game game = null;
     public int playerNum = 0;
@@ -12,8 +18,10 @@ public class User
 
     private bool isInQueue = false;
 
-    public User(Socket socket)
+    public User(Socket socket, SocketHandler.UDPServer udpServer)
     {
+        this.udpServer = udpServer;
+        endpoint = (IPEndPoint)socket.RemoteEndPoint;
         controller = new SocketHandler.Controller(socket);
         controller.onCloseConnection += (e) => Server.LogOut(e, this);
         controller.onReceiveData += (s) => Server.ProcessMessage(s, this);
@@ -24,9 +32,17 @@ public class User
         controller.Stop();
     }
 
-    public void SendGameMessage(string message)
+    public void HandleGameMessage(byte[] message)
     {
-        controller.SendData(message);
+        game.GameMessage(this, message);
+    }
+
+    public void SendGameMessage(byte[] message)
+    {
+        for (int i = 0; i < UDP_SEND_COUNT; ++i)
+        {
+            udpServer.SendData(endpoint, message);
+        }
     }
 
     public void Queue(GameQueue queue, List<int> modes)
@@ -61,5 +77,10 @@ public class User
                 numPlayers.ToString(),
                 playerNum.ToString(),
                 string.Join(" ", playerNames)));
+    }
+
+    public void AskForFrame(int frame)
+    {
+        controller.SendData("f " + frame.ToString());
     }
 }
